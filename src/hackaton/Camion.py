@@ -124,7 +124,7 @@ class Camion:
     def distance_to_destination(self) -> float:
         dx = self._to_x - self._x
         dy = self._to_y - self._y
-        return (dx * dx + dy * dy) ** 0.5
+        return (dx**2 + dy**2) ** 0.5
 
     def travel_time_hours(self, speed_kmh: float = 70.0) -> float:
         d = self.distance_to_destination()
@@ -138,8 +138,8 @@ class Camion:
         if self._empty > 0:
             usine.empty += self._empty
             self._empty = 0.0
-        need = max(0.0, float(target_full) - self._full)
-        take = min(need, float(usine.full))
+        need = max(0.0, target_full - self._full)
+        take = int(min(need, usine.full))
         usine.full -= take
         self._full += take
         return self._full >= float(target_full)

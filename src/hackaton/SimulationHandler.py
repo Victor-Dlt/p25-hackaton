@@ -67,11 +67,11 @@ class SimulationHandler:
         prod_per_hour = float(self._usine.production_rate) / 24.0
         self._production += prod_per_hour * dt_hours
 
-        produced_int = int(self._production)
-        if produced_int <= 0:
+        produced_int = self._production
+        if produced_int < 1:
             return
 
-        produced_int = min(produced_int, int(self._usine.empty))
+        produced_int = int(min(produced_int, int(self._usine.empty)))
         if produced_int <= 0:
             return
 
@@ -98,7 +98,6 @@ class SimulationHandler:
 
 
     def _choose_next_destination(self, camion: Camion, exclude: Usine | Client | None) -> Usine | Client:
-        # retour usine (ta règle)
         if camion.empty > camion.full or camion.full <= 0:
             return self._usine
 
@@ -135,7 +134,7 @@ class SimulationHandler:
         travel_h = d_km / self._speed_kmh if self._speed_kmh > 0 else 0.0
         next_time = depart_time + travel_h
 
-        # sécurité anti-boucle 
+        # Parce que notre programme boucle 
         if next_time <= depart_time + 1e-12:
             next_time = depart_time + 1e-6
 
@@ -175,16 +174,15 @@ class SimulationHandler:
                 return
 
         else:
-            # revenu: calcul livraison avant arrive_client
             free_space = max(0.0, float(dest.capacity) - (float(dest.full) + float(dest.empty)))
-            delivered_full = min(float(camion.full), free_space)
+            delivered_full = int(min(float(camion.full), free_space))
 
             camion.arrive_client(dest)
 
             if self._price_per_full != 0.0 and delivered_full > 0:
                 self._revenue += self._price_per_full * delivered_full
 
-        # choisir prochaine destination en excluant l'endroit actuel
+    
         next_dest = self._choose_next_destination(camion, exclude=dest)
         camion.set_destination(next_dest)
         self._schedule_arrival(camion_idx, t)
@@ -198,7 +196,7 @@ class SimulationHandler:
 
         can_leave = camion.arrive_usine(self._usine, target_full=float(self._target_full_at_plant))
         if not can_leave:
-            missing = max(0.0, float(self._target_full_at_plant) - float(camion.full))
+            missing = int(max(0.0, float(self._target_full_at_plant) - float(camion.full)))
             prod_per_hour = float(self._usine.production_rate) / 24.0
             if prod_per_hour <= 0:
                 camion.state = False
@@ -208,7 +206,6 @@ class SimulationHandler:
             self._schedule_depart(camion_idx, t + wait_h)
             return
 
-        # après usine: on exclut l'usine (évite usine->usine)
         next_dest = self._choose_next_destination(camion, exclude=self._usine)
         camion.set_destination(next_dest)
         self._schedule_arrival(camion_idx, t)
@@ -238,6 +235,5 @@ class SimulationHandler:
             else:
                 self._process_depart(camion_idx, event_time)
             
-            print(self._camions[1]._empty, self._camions[1]._full, self._camions[1].x, self._camions[1].y)
         
         return self.profit

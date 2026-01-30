@@ -7,6 +7,6 @@ class Client:
         self.y = coord_y
         self.capacity = capacity
         self.empty = init
-        self.full = capacity - init
+        self.full = 0.0
         self.consumption = consumption
 
