@@ -5,6 +5,7 @@ class Camion:
         self._state = False
         self._empty = 0
         self._full = 0
+        self._next_action =
 
 
     @property
